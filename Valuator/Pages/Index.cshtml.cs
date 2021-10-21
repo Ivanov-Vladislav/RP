@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Common;
+using Storage;
+using System;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using NATS.Client;
 
 namespace Valuator.Pages
@@ -47,22 +49,34 @@ namespace Valuator.Pages
 
             await CreateTaskForRankCalculator(id);
 
+            SimilarityMessage similarityMessage = new SimilarityMessage(id, similarity);
+            await SentMessageToEventLogger(similarityMessage);
+
             return Redirect($"summary?id={id}");
         }
 
         private async Task CreateTaskForRankCalculator(string id)
-        {
-            CancellationTokenSource ct = new CancellationTokenSource();
-            ConnectionFactory cf = new ConnectionFactory();
-
-            using (IConnection c = cf.CreateConnection())
+        {  
+            using (IConnection c = new ConnectionFactory().CreateConnection())
             {
-                if (!ct.IsCancellationRequested)
-                {
-                    byte[] data = Encoding.UTF8.GetBytes(id);
-                    c.Publish("valuator.processing.rank", data);
-                    await Task.Delay(1000);
-                }
+                byte[] data = Encoding.UTF8.GetBytes(id);
+                c.Publish("valuator.processing.rank", data);    
+
+                await Task.Delay(1000);  
+     
+                c.Drain();
+                c.Close();
+            }
+        }
+
+        private async Task SentMessageToEventLogger(SimilarityMessage similarityMsg)
+        {
+            using (IConnection c = new ConnectionFactory().CreateConnection())
+            {
+                var data = JsonSerializer.Serialize(similarityMsg);
+                c.Publish("valuator.logging.similarity", Encoding.UTF8.GetBytes(data));
+
+                await Task.Delay(1000);
 
                 c.Drain();
                 c.Close();

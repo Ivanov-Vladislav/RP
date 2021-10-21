@@ -1,4 +1,4 @@
-﻿using Valuator;
+﻿using Storage;
 using Microsoft.Extensions.Logging;
 
 namespace RankCalculator
