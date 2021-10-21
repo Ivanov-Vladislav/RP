@@ -1,0 +1,28 @@
+﻿@page
+@using Storage
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    <form method="post">
+        <div class="col-2">Текст для оценки:</div>
+        <div class="col-8">
+            <textarea name="text" rows="5" cols="50"></textarea>
+        </div>
+        <div class="col-2">Выберите страну:</div>
+        <div class="col-5">
+            <select name="shardKey">
+                <option selected value=@Constants.RusShardKey>Russia</option>
+                <option value=@Constants.EuShardKey>France</option>
+                <option value=@Constants.EuShardKey>Germany</option>
+                <option value=@Constants.OtherShardKey>USA</option>
+                <option value=@Constants.OtherShardKey>India</option>
+            </select>
+        </div>
+        <div class="col-11">
+            <input type="submit"/>
+        </div>
+    </form>
+</div>
